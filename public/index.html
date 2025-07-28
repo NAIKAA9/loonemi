@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan & EMI Form</title>
+  <link rel="stylesheet" href="emi.css">
+</head>
+<body>
+  <form action="/forms" method="POST" id="loanForm">
+    <h2>Loan & EMI Form</h2>
+
+    <label>Name:</label>
+    <input type="text" name="name" required>
+
+    <label>Email:</label>
+    <input type="email" name="email" required>
+
+    <label>Phone:</label>
+    <input type="text" name="phone" required pattern="\d{10}">
+
+    <label>Address:</label>
+    <input type="text" name="address">
+
+    <label>EMI:</label>
+    <input type="text" name="emi">
+
+    <label for="bank">Select Bank / Loan Provider:</label>
+    <select id="bank" name="bank" required>
+      <option value="">--Select Option--</option>
+      <option value="SBI">State Bank of India (SBI)</option>
+      <option value="HDFC">HDFC Bank</option>
+      <option value="ICICI">ICICI Bank</option>
+      <option value="Axis">Axis Bank</option>
+      <option value="PNB">Punjab National Bank (PNB)</option>
+      <option value="Slice">Slice</option>
+      <option value="mPokket">mPokket</option>
+      <option value="KreditBee">KreditBee</option>
+      <option value="Other">Other</option>
+    </select>
+
+    <label for="student-loan">Have you used a student loan before?</label>
+    <select id="student-loan" name="student-loan" required>
+      <option value="">--Select Option--</option>
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+
+    <div id="student-loan-details" style="display:none;">
+      <label for="loan-bank">Student Loan Bank Name:</label>
+      <input type="text" id="loan-bank" name="loan-bank">
+      <label for="loan-amount">Loan Amount (₹):</label>
+      <input type="number" id="loan-amount" name="loan-amount" min="0">
+      <label for="loan-year">Loan Year:</label>
+      <input type="number" id="loan-year" name="loan-year" placeholder="e.g. 2022" min="2000">
+    </div>
+
+    <!-- New Loan Type Field -->
+    <label for="loanType">Loan Type:</label>
+    <select id="loanType" name="loanType" required>
+      <option value="">--Select Loan Type--</option>
+      <option value="home">Home Loan</option>
+      <option value="personal">Personal Loan</option>
+      <option value="education">Education Loan</option>
+    </select>
+
+    <!-- New Payment Mode Field -->
+    <label for="paymentMode">Payment Mode:</label>
+    <select id="paymentMode" name="paymentMode" required>
+      <option value="">--Select Payment Mode--</option>
+      <option value="auto_debit">Auto-debit</option>
+     <option value="ecs">ECS</option>
+     <option value="cheque">Cheque</option>
+     <option value="upi">UPI</option>
+     <option value="netbanking">Net Banking</option>
+    </select>
+
+    <label for="upi">UPI ID:</label>
+    <input type="text" id="upi" name="upi" placeholder="example@bank">
+    <div class="error" id="upiError">Please enter a valid UPI ID (e.g., name@bank).</div>
+
+    <div class="declaration">
+      <input type="checkbox" id="declare" name="declare" disabled>
+      <label for="declare">
+        I have read and agree to the 
+        <a href="policy.html" target="_blank" id="policyLink">Terms & Policy</a>.
+      </label>
+    </div>
+
+    <button type="submit" id="submitBtn" disabled>Submit</button>
+  </form>
+
+  <script src="emi.js"></script>
+</body>
+</html>
