@@ -3,12 +3,14 @@ import mongoose from 'mongoose';
 import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import serverless from 'serverless-http';
 import Form from './models/forms.js';
 import 'dotenv/config';
 
-// Configure paths and initialize app
+// Setup __dirname and __filename for ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const app = express();
 
 // Middleware
@@ -16,20 +18,32 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Database connection
-const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/form', {
+// MongoDB connection caching (for serverless environments)
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectDB() {
+  if (cached.conn) return cached.conn;
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/form', {
       serverSelectionTimeoutMS: 5000,
-      socketTimeoutMS: 45000
+      socketTimeoutMS: 45000,
+    }).then((mongoose) => {
+      console.log('✅ Connected to MongoDB');
+      return mongoose;
     });
-    console.log('✅ Connected to MongoDB');
-  } catch (err) {
-    console.error('❌ MongoDB connection error:', err);
-    process.exit(1);
   }
-};
-connectDB();
+
+  cached.conn = await cached.promise;
+  return cached.conn;
+}
+
+// Connect to DB at cold start
+await connectDB();
 
 // Routes
 app.get('/', (req, res) => {
@@ -68,7 +82,7 @@ app.post('/forms', async (req, res) => {
     `);
   } catch (err) {
     console.error('❌ Error saving to MongoDB:', err);
-    
+
     let errorMessage = "Failed to submit form. Please check your inputs and try again.";
     if (err.errors) {
       const firstError = Object.values(err.errors)[0];
@@ -95,15 +109,13 @@ app.use((err, req, res, next) => {
   `);
 });
 
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// ✅ Local server link (for dev testing)
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running at http://localhost:${PORT}`);
+  });
+}
 
-// Handle shutdown gracefully
-process.on('SIGTERM', () => {
-  console.log('🛑 Server shutting down...');
-  mongoose.connection.close();
-  process.exit(0);
-});
+// ✅ Export handler for serverless environments
+export const handler = serverless(app);
