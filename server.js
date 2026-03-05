@@ -1,9 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
-import bodyParser from 'body-parser';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import serverless from 'serverless-http';
 import Form from './models/forms.js';
 import 'dotenv/config';
 
@@ -14,7 +12,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Middleware
-app.use(bodyParser.urlencoded({ extended: true }));
+app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -42,9 +40,6 @@ async function connectDB() {
   return cached.conn;
 }
 
-// Connect to DB at cold start
-await connectDB();
-
 // Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
@@ -54,6 +49,8 @@ app.post('/forms', async (req, res) => {
   console.log('📩 Received data:', req.body);
 
   try {
+    await connectDB();
+
     const formData = {
       name: req.body.name,
       email: req.body.email,
@@ -117,5 +114,5 @@ if (process.env.NODE_ENV !== 'production') {
   });
 }
 
-// ✅ Export handler for serverless environments
-export const handler = serverless(app);
+// Export app for Vercel Node runtime
+export default app;
