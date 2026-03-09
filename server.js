@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Form from './models/forms.js';
@@ -12,6 +13,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Middleware
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -26,8 +28,18 @@ if (!cached) {
 async function connectDB() {
   if (cached.conn) return cached.conn;
 
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+      // VERCEL check covers preview deployments where NODE_ENV may not be 'production'
+      const platform = process.env.VERCEL ? 'Vercel Project Settings → Environment Variables' : 'your hosting provider\'s environment variables';
+      throw new Error(`MONGODB_URI environment variable is not set. Add it in ${platform}.`);
+    }
+    console.warn('⚠️  MONGODB_URI not set — falling back to localhost. Set it in .env for production.');
+  }
+
   if (!cached.promise) {
-    cached.promise = mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/form', {
+    cached.promise = mongoose.connect(uri || 'mongodb://localhost:27017/form', {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     }).then((mongoose) => {
@@ -36,7 +48,12 @@ async function connectDB() {
     });
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    cached.promise = null;
+    throw err;
+  }
   return cached.conn;
 }
 
@@ -80,15 +97,17 @@ app.post('/forms', async (req, res) => {
   } catch (err) {
     console.error('❌ Error saving to MongoDB:', err);
 
-    let errorMessage = "Failed to submit form. Please check your inputs and try again.";
-    if (err.errors) {
+    let errorMessage;
+    if (err.name === 'ValidationError' && err.errors) {
       const firstError = Object.values(err.errors)[0];
-      errorMessage = firstError.message || errorMessage;
+      errorMessage = firstError?.message || "Please check your inputs and try again.";
+    } else {
+      errorMessage = "Server error. Please try again later.";
     }
 
     res.status(400).send(`
       <script>
-        alert("${errorMessage.replace(/"/g, '\\"')}");
+        alert(${JSON.stringify(errorMessage)});
         window.location.href = "/";
       </script>
     `);
