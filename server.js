@@ -128,11 +128,12 @@ app.use((err, req, res, next) => {
   `);
 });
 
-// ✅ Local server link (for dev testing)
-if (process.env.NODE_ENV !== 'production') {
+// Start the server unless running on Vercel (serverless).
+// Railway, Render, and local dev all need the server to listen on a port.
+if (!process.env.VERCEL) {
   const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`🚀 Server running on port ${PORT}`);
   });
 }
 

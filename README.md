@@ -34,6 +34,14 @@
    vercel --prod
    ```
 
+## Railway deployment
+
+1. Create a new project on [Railway](https://railway.app) and connect your GitHub repository.
+2. Add `MONGO_URI` in **Railway Project → Variables**.
+   Use your MongoDB Atlas connection string (e.g. `mongodb+srv://user:pass@cluster.mongodb.net/dbname`).
+3. Railway automatically provides a `PORT` variable — no extra configuration needed.
+4. Deploy by pushing to your connected branch or via the Railway dashboard.
+
 ## App live server (published Vercel link)
 
 After deploy completes, Vercel prints the production URL. You can also list deployments and copy the latest live URL:
