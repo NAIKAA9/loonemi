@@ -26,13 +26,21 @@ if (!cached) {
 async function connectDB() {
   if (cached.conn) return cached.conn;
 
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    throw new Error('MONGODB_URI environment variable is not set');
+  }
+
   if (!cached.promise) {
-    cached.promise = mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/form', {
+    cached.promise = mongoose.connect(uri, {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     }).then((mongoose) => {
       console.log('✅ Connected to MongoDB');
       return mongoose;
+    }).catch((err) => {
+      cached.promise = null; // Reset so the next request can retry
+      throw err;
     });
   }
 
@@ -80,13 +88,19 @@ app.post('/forms', async (req, res) => {
   } catch (err) {
     console.error('❌ Error saving to MongoDB:', err);
 
-    let errorMessage = "Failed to submit form. Please check your inputs and try again.";
-    if (err.errors) {
+    let errorMessage;
+    let statusCode;
+
+    if (err.name === 'ValidationError' && err.errors) {
       const firstError = Object.values(err.errors)[0];
-      errorMessage = firstError.message || errorMessage;
+      errorMessage = (firstError && firstError.message) || "Please check your inputs and try again.";
+      statusCode = 400;
+    } else {
+      errorMessage = "Service temporarily unavailable. Please try again later.";
+      statusCode = 503;
     }
 
-    res.status(400).send(`
+    res.status(statusCode).send(`
       <script>
         alert(${JSON.stringify(errorMessage)});
         window.location.href = "/";
