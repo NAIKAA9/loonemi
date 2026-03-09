@@ -88,6 +88,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const isDeclared = declareCheckbox.checked;
     const isLoanTypeValid = !!loanTypeSelect.value;
     const isPaymentModeValid = !!paymentModeSelect.value;
+    const isStudentLoanSelected = !!studentLoanSelect.value;
     
     // Conditional validations
     let isStudentLoanValid = true;
@@ -108,6 +109,7 @@ document.addEventListener('DOMContentLoaded', function () {
       isDeclared &&
       isLoanTypeValid &&
       isPaymentModeValid &&
+      isStudentLoanSelected &&
       isStudentLoanValid &&
       isUPIValid
     );

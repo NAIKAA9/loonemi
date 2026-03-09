@@ -97,6 +97,10 @@ const formSchema = new mongoose.Schema({
   declare: {
     type: Boolean,
     required: [true, "You must agree to the terms and policy"],
+    validate: {
+      validator: function(v) { return v === true; },
+      message: "You must agree to the terms and policy"
+    },
     set: function(v) {
       return v === 'on' || v === true;
     }
