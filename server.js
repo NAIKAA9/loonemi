@@ -36,7 +36,12 @@ async function connectDB() {
     });
   }
 
-  cached.conn = await cached.promise;
+  try {
+    cached.conn = await cached.promise;
+  } catch (err) {
+    cached.promise = null;
+    throw err;
+  }
   return cached.conn;
 }
 
@@ -80,15 +85,17 @@ app.post('/forms', async (req, res) => {
   } catch (err) {
     console.error('❌ Error saving to MongoDB:', err);
 
-    let errorMessage = "Failed to submit form. Please check your inputs and try again.";
-    if (err.errors) {
+    let errorMessage;
+    if (err.name === 'ValidationError' && err.errors) {
       const firstError = Object.values(err.errors)[0];
-      errorMessage = firstError.message || errorMessage;
+      errorMessage = firstError?.message || "Please check your inputs and try again.";
+    } else {
+      errorMessage = "Server error. Please try again later.";
     }
 
     res.status(400).send(`
       <script>
-        alert("${errorMessage.replace(/"/g, '\\"')}");
+        alert(${JSON.stringify(errorMessage)});
         window.location.href = "/";
       </script>
     `);
