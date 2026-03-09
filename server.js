@@ -28,14 +28,14 @@ if (!cached) {
 async function connectDB() {
   if (cached.conn) return cached.conn;
 
-  const uri = process.env.MONGODB_URI;
+  const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
   if (!uri) {
     if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
       // VERCEL check covers preview deployments where NODE_ENV may not be 'production'
       const platform = process.env.VERCEL ? 'Vercel Project Settings → Environment Variables' : 'your hosting provider\'s environment variables';
-      throw new Error(`MONGODB_URI environment variable is not set. Add it in ${platform}.`);
+      throw new Error(`MONGO_URI (or MONGODB_URI) environment variable is not set. Add it in ${platform}.`);
     }
-    console.warn('⚠️  MONGODB_URI not set — falling back to localhost. Set it in .env for production.');
+    console.warn('⚠️  MONGO_URI (or MONGODB_URI) not set — falling back to localhost. Set it in .env for production.');
   }
 
   if (!cached.promise) {

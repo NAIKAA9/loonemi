@@ -6,9 +6,9 @@
    ```bash
    cp .env.example .env
    ```
-2. Edit `.env` and set `MONGODB_URI` to your MongoDB Atlas connection string:
+2. Edit `.env` and set `MONGO_URI` to your MongoDB Atlas connection string:
    ```
-   MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<dbname>
+   MONGO_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<dbname>
    ```
 3. Install dependencies and start the dev server:
    ```bash
@@ -27,7 +27,7 @@
    vercel login
    vercel link
    ```
-3. Add `MONGODB_URI` in **Vercel Project Settings → Environment Variables**.
+3. Add `MONGO_URI` in **Vercel Project Settings → Environment Variables**.
    Use your MongoDB Atlas connection string (e.g. `mongodb+srv://user:pass@cluster.mongodb.net/dbname`).
 4. Deploy to production:
    ```bash
