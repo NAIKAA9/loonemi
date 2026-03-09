@@ -1,5 +1,6 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import Form from './models/forms.js';
@@ -12,6 +13,7 @@ const __dirname = path.dirname(__filename);
 const app = express();
 
 // Middleware
+app.use(cors());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
