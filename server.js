@@ -98,14 +98,17 @@ app.post('/forms', async (req, res) => {
     console.error('❌ Error saving to MongoDB:', err);
 
     let errorMessage;
+    let statusCode;
     if (err.name === 'ValidationError' && err.errors) {
       const firstError = Object.values(err.errors)[0];
       errorMessage = firstError?.message || "Please check your inputs and try again.";
+      statusCode = 400;
     } else {
       errorMessage = "Server error. Please try again later.";
+      statusCode = 500;
     }
 
-    res.status(400).send(`
+    res.status(statusCode).send(`
       <script>
         alert(${JSON.stringify(errorMessage)});
         window.location.href = "/";
