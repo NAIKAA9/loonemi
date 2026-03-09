@@ -88,7 +88,7 @@ app.post('/forms', async (req, res) => {
 
     res.status(400).send(`
       <script>
-        alert("${errorMessage.replace(/"/g, '\\"')}");
+        alert(${JSON.stringify(errorMessage)});
         window.location.href = "/";
       </script>
     `);
