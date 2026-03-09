@@ -28,8 +28,18 @@ if (!cached) {
 async function connectDB() {
   if (cached.conn) return cached.conn;
 
+  const uri = process.env.MONGODB_URI;
+  if (!uri) {
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+      // VERCEL check covers preview deployments where NODE_ENV may not be 'production'
+      const platform = process.env.VERCEL ? 'Vercel Project Settings → Environment Variables' : 'your hosting provider\'s environment variables';
+      throw new Error(`MONGODB_URI environment variable is not set. Add it in ${platform}.`);
+    }
+    console.warn('⚠️  MONGODB_URI not set — falling back to localhost. Set it in .env for production.');
+  }
+
   if (!cached.promise) {
-    cached.promise = mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/form', {
+    cached.promise = mongoose.connect(uri || 'mongodb://localhost:27017/form', {
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 45000,
     }).then((mongoose) => {

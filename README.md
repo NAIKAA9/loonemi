@@ -1,5 +1,21 @@
 # Form Backend
 
+## Local development
+
+1. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+2. Edit `.env` and set `MONGODB_URI` to your MongoDB Atlas connection string:
+   ```
+   MONGODB_URI=mongodb+srv://<username>:<password>@<cluster>.mongodb.net/<dbname>
+   ```
+3. Install dependencies and start the dev server:
+   ```bash
+   npm install
+   npm run dev
+   ```
+
 ## Vercel deployment
 
 1. Install Vercel CLI:
@@ -12,7 +28,8 @@
    vercel link
    ```
 3. Add `MONGODB_URI` in **Vercel Project Settings → Environment Variables**.
-4. Deploy to production and publish the live link:
+   Use your MongoDB Atlas connection string (e.g. `mongodb+srv://user:pass@cluster.mongodb.net/dbname`).
+4. Deploy to production:
    ```bash
    vercel --prod
    ```
