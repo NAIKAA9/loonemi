@@ -1,4 +1,4 @@
-# Form Backend
+﻿# Form Backend
 
 ## Vercel deployment
 
@@ -11,7 +11,7 @@
    vercel login
    vercel link
    ```
-3. Add `MONGODB_URI` in **Vercel Project Settings → Environment Variables**.
+3. Add `MONGODB_URI` in **Vercel Project Settings â†’ Environment Variables**.
 4. Deploy to production and publish the live link:
    ```bash
    vercel --prod
@@ -34,3 +34,6 @@ Example live link format:
 
 ## Developer Profile
 This repository is created and maintained by **[Eslavath Narasimha Naik](https://github.com/NAIKAA9)**.
+- **GitHub**: [NAIKAA9](https://github.com/NAIKAA9)
+- **LinkedIn**: [Narasimha Naik](https://www.linkedin.com/in/narasimhanaik591)
+
