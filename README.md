@@ -28,3 +28,9 @@ vercel ls
 Example live link format:
 
 `https://your-project-name.vercel.app`
+
+
+---
+
+## Developer Profile
+This repository is created and maintained by **[Eslavath Narasimha Naik](https://github.com/NAIKAA9)**.
