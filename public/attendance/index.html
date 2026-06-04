@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAIK – 90-Day Study Tracker</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --green:#27500A;--green-bg:#EAF3DE;--green-mid:#3B6D11;--green-light:#C0DD97;
+  --yellow:#633806;--yellow-bg:#FAEEDA;--yellow-mid:#854F0B;
+  --red:#791F1F;--red-bg:#FCEBEB;--red-mid:#A32D2D;
+  --blue:#0C447C;--blue-bg:#E6F1FB;--blue-mid:#185FA5;
+  --purple:#3C3489;--purple-bg:#EEEDFE;--purple-mid:#534AB7;
+  --gray:#444441;--gray-bg:#F1EFE8;--gray-mid:#5F5E5A;
+  --bg:#f8f7f4;--card:#fff;--border:rgba(0,0,0,.1);
+  --text:#1a1a18;--text2:#5F5E5A;--text3:#888780;
+  --r8:8px;--r12:12px;--r16:16px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1a18;--card:#242422;--border:rgba(255,255,255,.1);
+    --text:#f0ede8;--text2:#B4B2A9;--text3:#888780;
+    --green-bg:#0d1f06;--yellow-bg:#1a0f02;--red-bg:#1f0808;
+    --blue-bg:#04132a;--purple-bg:#110f2a;--gray-bg:#1a1a17;
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px}
+.app{max-width:740px;margin:0 auto;padding:1.5rem 1rem 5rem}
+
+/* Nav */
+.nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;padding-bottom:1rem;border-bottom:.5px solid var(--border)}
+.nav-logo{font-size:17px;font-weight:600;letter-spacing:-.02em}
+.nav-logo span{color:var(--green-mid)}
+.nav-date{font-size:12px;color:var(--text2);background:var(--gray-bg);padding:4px 10px;border-radius:20px}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:1.5rem}
+.stat{background:var(--gray-bg);border-radius:var(--r8);padding:12px 14px}
+.stat .lbl{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em}
+.stat .val{font-size:24px;font-weight:600;color:var(--text);line-height:1.1}
+.stat .sub{font-size:11px;color:var(--text2);margin-top:2px}
+
+/* Progress */
+.prog-wrap{background:var(--gray-bg);border-radius:20px;height:7px;margin-bottom:.5rem;overflow:hidden}
+.prog-fill{height:100%;border-radius:20px;background:var(--green-mid);transition:width .5s}
+.prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--text3);margin-bottom:1.5rem}
+
+/* Banners */
+.banner{border-radius:var(--r8);padding:10px 14px;font-size:13px;display:flex;align-items:center;gap:8px;margin-bottom:1rem}
+.banner.red{background:var(--red-bg);color:var(--red);border:.5px solid var(--red-mid)}
+.banner.green{background:var(--green-bg);color:var(--green);border:.5px solid var(--green-mid)}
+.banner.blue{background:var(--blue-bg);color:var(--blue);border:.5px solid var(--blue-mid)}
+
+/* Tabs */
+.tabs{display:flex;gap:3px;margin-bottom:1.25rem;background:var(--gray-bg);padding:4px;border-radius:var(--r8);overflow-x:auto}
+.tab{flex:1;min-width:80px;padding:7px 6px;font-size:12px;border:none;border-radius:6px;background:transparent;color:var(--text2);cursor:pointer;font-weight:500;white-space:nowrap;transition:background .15s}
+.tab.active{background:var(--card);color:var(--text);border:.5px solid var(--border)}
+.section{display:none}
+.section.active{display:block}
+
+/* Cards */
+.card{background:var(--card);border:.5px solid var(--border);border-radius:var(--r12);padding:1.25rem;margin-bottom:1rem}
+.card-title{font-size:12px;font-weight:500;color:var(--text3);margin-bottom:1rem;text-transform:uppercase;letter-spacing:.04em}
+
+/* Check-in rows */
+.row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:.5px solid var(--border)}
+.row:last-of-type{border-bottom:none;padding-bottom:0}
+.row-icon{width:36px;height:36px;border-radius:var(--r8);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.row-icon.ibps{background:var(--blue-bg);color:var(--blue)}
+.row-icon.java{background:var(--green-bg);color:var(--green-mid)}
+.row-info{flex:1}
+.row-info .name{font-size:14px;font-weight:500;color:var(--text)}
+.row-info .meta{font-size:11px;color:var(--text3);margin-top:2px}
+.row-controls{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.time-pair{display:flex;align-items:center;gap:4px}
+.time-pair input[type=time]{font-size:11px;padding:4px 6px;border:.5px solid var(--border);border-radius:var(--r8);background:var(--gray-bg);color:var(--text);width:88px;outline:none}
+.time-pair span{font-size:10px;color:var(--text3)}
+.tog{width:42px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background .2s;background:var(--border);flex-shrink:0}
+.tog.on{background:var(--green-mid)}
+.tog::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.tog.on::after{transform:translateX(18px)}
+
+/* Topics */
+.topic-row{display:flex;gap:6px;margin-bottom:8px}
+.topic-row input{flex:1;font-size:13px;padding:8px 10px;border:.5px solid var(--border);border-radius:var(--r8);background:var(--gray-bg);color:var(--text);outline:none}
+.topic-row button{padding:8px 14px;font-size:12px;border:.5px solid var(--border);border-radius:var(--r8);background:transparent;color:var(--text);cursor:pointer}
+.topic-row button:hover{background:var(--gray-bg)}
+.tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.tag{font-size:12px;background:var(--gray-bg);border:.5px solid var(--border);border-radius:20px;padding:4px 10px;color:var(--text2);display:flex;align-items:center;gap:4px}
+.tag .x{cursor:pointer;color:var(--red-mid);font-size:14px;line-height:1;margin-left:2px}
+
+/* Upload */
+.upload-zone{border:.5px dashed var(--border);border-radius:var(--r8);padding:20px;text-align:center;cursor:pointer;transition:background .15s;margin-top:8px;position:relative}
+.upload-zone:hover{background:var(--gray-bg)}
+.upload-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-zone .uz-icon{font-size:28px;margin-bottom:6px;color:var(--text3)}
+.upload-zone .uz-title{font-size:13px;font-weight:500;color:var(--text2)}
+.upload-zone .uz-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.upload-preview{margin-top:10px;border-radius:var(--r8);overflow:hidden;border:.5px solid var(--border);max-height:180px;display:none}
+.upload-preview img{width:100%;max-height:180px;object-fit:cover;display:block}
+.upload-confirm{display:none;align-items:center;gap:6px;font-size:13px;color:var(--green);font-weight:500;margin-top:8px}
+
+/* Submit */
+.submit-btn{width:100%;margin-top:1.25rem;padding:12px;font-size:14px;font-weight:600;border-radius:var(--r8);border:none;cursor:pointer;background:var(--green-mid);color:#fff;transition:opacity .2s}
+.submit-btn:hover{opacity:.88}
+.submit-btn:disabled{opacity:.45;cursor:not-allowed}
+.saved-msg{display:none;text-align:center;font-size:13px;color:var(--green);margin-top:10px;font-weight:500;padding:8px;background:var(--green-bg);border-radius:var(--r8)}
+.already-saved{background:var(--green-bg);border:.5px solid var(--green-mid);border-radius:var(--r8);padding:10px 14px;font-size:13px;color:var(--green);display:flex;align-items:center;gap:8px;margin-top:1rem}
+
+/* Log */
+.log-wrap{overflow-x:auto}
+.log-table{width:100%;border-collapse:collapse;font-size:13px;min-width:500px}
+.log-table th{font-size:10px;font-weight:500;color:var(--text3);text-align:left;padding:8px 10px;border-bottom:.5px solid var(--border);text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+.log-table td{padding:9px 10px;border-bottom:.5px solid var(--border);color:var(--text2);vertical-align:middle}
+.log-table tbody tr:last-child td{border-bottom:none}
+.log-table tbody tr:hover td{background:var(--gray-bg)}
+.badge{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;color:#fff}
+.badge.g{background:var(--green-mid)}.badge.y{background:var(--yellow-mid)}.badge.r{background:var(--red-mid)}
+.pill{display:inline-block;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500;margin-right:2px}
+.pill.ibps{background:var(--blue-bg);color:var(--blue)}
+.pill.java{background:var(--green-bg);color:var(--green)}
+.pill.miss{background:var(--red-bg);color:var(--red)}
+.thumb-img{width:34px;height:34px;object-fit:cover;border-radius:6px;cursor:pointer;border:.5px solid var(--border);display:block}
+.view-btn{font-size:11px;padding:3px 8px;border:.5px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);cursor:pointer;white-space:nowrap}
+.view-btn:hover{background:var(--gray-bg)}
+
+/* Calendar */
+.cal-month{margin-bottom:1.25rem}
+.cal-month-hdr{font-size:12px;font-weight:500;color:var(--text2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-dh{font-size:9px;text-align:center;color:var(--text3);padding:2px 0;font-weight:500}
+.cal-day{border-radius:6px;padding:3px 2px;text-align:center;font-size:11px;border:.5px solid var(--border);min-height:34px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;cursor:pointer}
+.cal-day.today{border:1.5px solid var(--green-mid)}
+.cal-day.g{background:var(--green-bg);border-color:var(--green-light)}
+.cal-day.y{background:var(--yellow-bg);border-color:#FAC775}
+.cal-day.r{background:var(--red-bg);border-color:#F09595}
+.cal-day.empty{border-color:transparent;background:transparent;cursor:default}
+.cal-day.future{opacity:.3;cursor:default}
+.cal-day .dn{font-weight:600;font-size:11px;color:var(--text)}
+.cal-day.g .dn{color:var(--green)}.cal-day.y .dn{color:var(--yellow)}.cal-day.r .dn{color:var(--red)}
+.cal-day .dot{width:12px;height:12px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:700}
+.cal-day.g .dot{background:var(--green-mid)}.cal-day.y .dot{background:var(--yellow-mid)}.cal-day.r .dot{background:var(--red-mid)}
+.cal-day.warn{border:1.5px solid var(--red-mid)!important}
+
+/* Reminders */
+.rem-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:.5px solid var(--border);font-size:13px}
+.rem-item:last-child{border-bottom:none;padding-bottom:0}
+.rem-lbl{flex:1;color:var(--text)}
+.rem-time{font-size:12px;background:var(--gray-bg);padding:3px 9px;border-radius:20px;color:var(--text2)}
+.rem-btn{width:100%;margin-top:12px;padding:10px;font-size:13px;border:.5px solid var(--border);border-radius:var(--r8);background:transparent;color:var(--text);cursor:pointer}
+.rem-btn:hover{background:var(--gray-bg)}
+
+/* ===== REPORT SECTION ===== */
+.report-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem;flex-wrap:wrap;gap:8px}
+.report-title{font-size:16px;font-weight:600;color:var(--text)}
+.report-actions{display:flex;gap:8px}
+.report-btn{font-size:12px;padding:6px 14px;border:.5px solid var(--border);border-radius:20px;background:transparent;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:5px}
+.report-btn:hover{background:var(--gray-bg)}
+.report-btn.primary{background:var(--green-mid);color:#fff;border-color:var(--green-mid)}
+.report-btn.primary:hover{opacity:.88}
+
+/* Summary grid 2x3 */
+.report-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:1rem}
+.rstat{border-radius:var(--r8);padding:14px;border:.5px solid var(--border);background:var(--card)}
+.rstat .rl{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:.04em}
+.rstat .rv{font-size:22px;font-weight:600;color:var(--text);line-height:1.1}
+.rstat .rs{font-size:11px;color:var(--text2);margin-top:3px}
+.rstat.hi{border-color:var(--green-mid);background:var(--green-bg)}
+.rstat.hi .rv{color:var(--green)}
+.rstat.lo{border-color:var(--red-mid);background:var(--red-bg)}
+.rstat.lo .rv{color:var(--red)}
+.rstat.mid{border-color:var(--blue-mid);background:var(--blue-bg)}
+.rstat.mid .rv{color:var(--blue)}
+
+/* Attendance % bars */
+.att-bar-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.att-bar-label{font-size:13px;color:var(--text);width:110px;flex-shrink:0}
+.att-bar-wrap{flex:1;height:8px;background:var(--gray-bg);border-radius:20px;overflow:hidden}
+.att-bar-fill{height:100%;border-radius:20px;transition:width .5s}
+.att-bar-fill.ibps{background:var(--blue-mid)}
+.att-bar-fill.java{background:var(--green-mid)}
+.att-bar-fill.both{background:var(--purple-mid)}
+.att-pct{font-size:12px;font-weight:600;width:38px;text-align:right;color:var(--text2)}
+
+/* Weekly table */
+.week-table{width:100%;border-collapse:collapse;font-size:12px}
+.week-table th{font-size:10px;font-weight:500;color:var(--text3);padding:6px 8px;text-align:left;border-bottom:.5px solid var(--border);text-transform:uppercase;letter-spacing:.04em}
+.week-table td{padding:8px;border-bottom:.5px solid var(--border);color:var(--text2);vertical-align:middle}
+.week-table tbody tr:last-child td{border-bottom:none}
+.week-table tbody tr:hover td{background:var(--gray-bg)}
+.week-score-bar{display:flex;gap:2px;align-items:center}
+.wsb{width:10px;height:10px;border-radius:2px}
+.wsb.g{background:var(--green-mid)}.wsb.y{background:var(--yellow-mid)}.wsb.r{background:var(--red-mid)}.wsb.x{background:var(--border)}
+.week-pct{display:inline-block;font-size:10px;padding:1px 6px;border-radius:20px;font-weight:600}
+.week-pct.hi{background:var(--green-bg);color:var(--green)}
+.week-pct.mid{background:var(--yellow-bg);color:var(--yellow)}
+.week-pct.lo{background:var(--red-bg);color:var(--red)}
+
+/* Monthly breakdown */
+.month-row{border:.5px solid var(--border);border-radius:var(--r8);padding:12px 14px;margin-bottom:8px}
+.month-row-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.month-name{font-size:13px;font-weight:500;color:var(--text)}
+.month-score-badge{font-size:12px;font-weight:600;padding:2px 10px;border-radius:20px}
+.month-mini-bars{display:flex;gap:6px;flex-wrap:wrap}
+.mmb{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text3);flex:1;min-width:120px}
+.mmb-bar{flex:1;height:5px;background:var(--gray-bg);border-radius:20px;overflow:hidden;min-width:40px}
+.mmb-fill{height:100%;border-radius:20px}
+
+/* Streak & consistency */
+.streak-row{display:flex;gap:2px;flex-wrap:wrap;margin-top:6px}
+.sday{width:14px;height:14px;border-radius:3px;cursor:pointer}
+.sday.g{background:var(--green-mid)}.sday.y{background:var(--yellow-mid)}.sday.r{background:var(--red-mid)}.sday.x{background:var(--gray-bg)}
+
+/* Print report */
+@media print{
+  body{background:#fff;color:#000;font-size:12px}
+  .tabs,.tab,.nav,.stats,.prog-wrap,.prog-labels,.banner,.report-actions{display:none!important}
+  .section{display:block!important}
+  #tab-checkin,#tab-log,#tab-calendar,#tab-reminders{display:none!important}
+  #tab-report{display:block!important}
+  .card,.month-row{break-inside:avoid}
+}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999;align-items:center;justify-content:center;padding:1rem}
+.modal-bg.open{display:flex}
+.modal{background:var(--card);border-radius:var(--r16);padding:1.5rem;max-width:420px;width:100%;border:.5px solid var(--border)}
+.modal h3{font-size:16px;font-weight:600;margin-bottom:.75rem;color:var(--text)}
+.modal-body{font-size:13px;color:var(--text2);line-height:1.8;white-space:pre-line}
+.modal img{width:100%;border-radius:var(--r8);margin:10px 0;border:.5px solid var(--border);max-height:220px;object-fit:cover}
+.modal-close{margin-top:1rem;width:100%;padding:9px;border:.5px solid var(--border);border-radius:var(--r8);background:transparent;color:var(--text);cursor:pointer;font-size:13px}
+.modal-close:hover{background:var(--gray-bg)}
+
+@media(max-width:500px){
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .report-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .row-controls{flex-direction:column;align-items:flex-end;gap:6px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="nav">
+    <div class="nav-logo">NAIK <span>Tracker</span></div>
+    <div class="nav-date" id="navDate"></div>
+  </div>
+
+  <div id="alertBanner" class="banner red" style="display:none">⚠ 2 consecutive red days — must study today.</div>
+  <div id="streakBanner" class="banner green" style="display:none">🔥 <span id="streakText"></span></div>
+  <div id="savedBanner" class="banner blue" style="display:none">✓ Attendance auto-saved!</div>
+
+  <div class="stats">
+    <div class="stat"><div class="lbl">Total Score</div><div class="val" id="sTotal">0</div><div class="sub" id="sPossible">of 0 pts</div></div>
+    <div class="stat"><div class="lbl">Days Done</div><div class="val" id="sDays">0</div><div class="sub">of 90</div></div>
+    <div class="stat"><div class="lbl">Streak</div><div class="val" id="sStreak">0</div><div class="sub">days</div></div>
+    <div class="stat"><div class="lbl">vs Target</div><div class="val" id="sPace">—</div><div class="sub" id="sPaceSub">need 150</div></div>
+  </div>
+  <div class="prog-wrap"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+  <div class="prog-labels"><span>0</span><span id="progMid">Target: 150 / 180</span><span>180</span></div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('checkin',this)">📝 Check-in</button>
+    <button class="tab" onclick="switchTab('log',this)">📋 Log</button>
+    <button class="tab" onclick="switchTab('calendar',this)">📅 Calendar</button>
+    <button class="tab" onclick="switchTab('report',this)">📊 Report</button>
+    <button class="tab" onclick="switchTab('reminders',this)">🔔 Reminders</button>
+  </div>
+
+  <!-- CHECK-IN -->
+  <div class="section active" id="tab-checkin">
+    <div class="card">
+      <div class="card-title">Today's attendance — <span id="todayLabel"></span></div>
+      <div class="row">
+        <div class="row-icon ibps">📖</div>
+        <div class="row-info">
+          <div class="name">IBPS SO Prep</div>
+          <div class="meta">Window: 6:00 AM – 6:00 PM (mandatory)</div>
+        </div>
+        <div class="row-controls">
+          <div class="time-pair">
+            <input type="time" id="ibpsOpen" min="06:00" max="18:00" value="06:00">
+            <span>–</span>
+            <input type="time" id="ibpsClose" min="06:00" max="18:00" value="07:00">
+          </div>
+          <button class="tog" id="togIBPS" onclick="toggle('ibps')" aria-label="Mark IBPS done"></button>
+        </div>
+      </div>
+      <div class="row">
+        <div class="row-icon java">💻</div>
+        <div class="row-info">
+          <div class="name">Java Backend</div>
+          <div class="meta">Window: 6:00 AM – 6:00 PM (mandatory)</div>
+        </div>
+        <div class="row-controls">
+          <div class="time-pair">
+            <input type="time" id="javaOpen" min="06:00" max="18:00" value="07:00">
+            <span>–</span>
+            <input type="time" id="javaClose" min="06:00" max="18:00" value="08:00">
+          </div>
+          <button class="tog" id="togJava" onclick="toggle('java')" aria-label="Mark Java done"></button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Topics covered (required)</div>
+      <div class="topic-row">
+        <input type="text" id="topicInput" placeholder="e.g. Networking OSI, Spring Boot REST..." maxlength="80">
+        <button onclick="addTopic()">+ Add</button>
+      </div>
+      <div class="tags" id="tagList"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Screenshot proof (required — auto-saved on upload)</div>
+      <label class="upload-zone">
+        <input type="file" id="fileInput" accept="image/*" onchange="handleFile(this)">
+        <div class="uz-icon">📸</div>
+        <div class="uz-title">Tap to upload screenshot</div>
+        <div class="uz-sub">Only IBPS SO / Java Backend proofs • PNG, JPG, WEBP</div>
+      </label>
+      <div class="upload-preview" id="previewBox"><img id="previewImg" src="" alt="preview"></div>
+      <div class="upload-confirm" id="uploadOK">✓ <span id="uploadName"></span> — uploaded</div>
+    </div>
+    <button class="submit-btn" id="saveBtn" onclick="saveDay()" disabled>Save Attendance &amp; Score</button>
+    <div class="saved-msg" id="savedMsg">✓ Attendance saved! Score recorded.</div>
+    <div class="already-saved" id="alreadySaved" style="display:none">✓ Today already saved. Update below if needed.</div>
+  </div>
+
+  <!-- LOG -->
+  <div class="section" id="tab-log">
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <select id="logFilter" onchange="renderLog()" style="font-size:13px;padding:6px 10px;border:.5px solid var(--border);border-radius:var(--r8);background:var(--gray-bg);color:var(--text);outline:none">
+        <option value="all">All days</option>
+        <option value="ibps">IBPS done</option>
+        <option value="java">Java done</option>
+        <option value="both">Both done</option>
+        <option value="none">Missed (0)</option>
+      </select>
+      <button class="report-btn" onclick="exportCSV()">⬇ Export CSV</button>
+    </div>
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="log-wrap">
+        <table class="log-table">
+          <thead>
+            <tr>
+              <th style="width:75px">Date</th>
+              <th style="width:45px">Score</th>
+              <th style="width:110px">Subjects</th>
+              <th>Topics</th>
+              <th style="width:50px">Proof</th>
+              <th style="width:55px">Detail</th>
+            </tr>
+          </thead>
+          <tbody id="logBody"><tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">No entries yet.</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CALENDAR -->
+  <div class="section" id="tab-calendar">
+    <div class="banner blue" style="font-size:12px">🟩 2pts &nbsp;|&nbsp; 🟨 1pt &nbsp;|&nbsp; 🟥 0pts &nbsp;|&nbsp; Red border = 2 consecutive zeros</div>
+    <div id="calContainer" style="margin-top:1rem"></div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="section" id="tab-report">
+    <div class="report-header">
+      <div class="report-title">📊 Attendance Record Report</div>
+      <div class="report-actions">
+        <button class="report-btn" onclick="window.print()">🖨 Print</button>
+        <button class="report-btn primary" onclick="exportReportCSV()">⬇ Export Report</button>
+      </div>
+    </div>
+
+    <!-- Overall Summary -->
+    <div class="card">
+      <div class="card-title">Overall Summary</div>
+      <div class="report-grid" id="reportSummary"></div>
+    </div>
+
+    <!-- Attendance % bars -->
+    <div class="card">
+      <div class="card-title">Subject-wise Attendance</div>
+      <div id="attBars"></div>
+    </div>
+
+    <!-- Consistency heatmap -->
+    <div class="card">
+      <div class="card-title">90-Day Consistency Map</div>
+      <div style="font-size:11px;color:var(--text3);margin-bottom:8px">Each square = 1 day. Green = 2pts, Yellow = 1pt, Red = 0pts</div>
+      <div class="streak-row" id="heatmap"></div>
+    </div>
+
+    <!-- Weekly breakdown -->
+    <div class="card">
+      <div class="card-title">Weekly Breakdown</div>
+      <div style="overflow-x:auto">
+        <table class="week-table">
+          <thead>
+            <tr>
+              <th>Week</th>
+              <th>Dates</th>
+              <th>Score</th>
+              <th>IBPS Days</th>
+              <th>Java Days</th>
+              <th>Efficiency</th>
+              <th>Pattern</th>
+            </tr>
+          </thead>
+          <tbody id="weekBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Monthly breakdown -->
+    <div class="card">
+      <div class="card-title">Monthly Breakdown</div>
+      <div id="monthBreakdown"></div>
+    </div>
+
+    <!-- Best & worst -->
+    <div class="card">
+      <div class="card-title">Performance Insights</div>
+      <div id="insights"></div>
+    </div>
+  </div>
+
+  <!-- REMINDERS -->
+  <div class="section" id="tab-reminders">
+    <div class="card">
+      <div class="card-title">Daily automatic reminders</div>
+      <div class="rem-item"><span>🌅</span><span class="rem-lbl">Morning kickoff</span><span class="rem-time">6:00 AM</span></div>
+      <div class="rem-item"><span>☀️</span><span class="rem-lbl">Midday check</span><span class="rem-time">12:00 PM</span></div>
+      <div class="rem-item"><span>⏰</span><span class="rem-lbl">Window closing soon</span><span class="rem-time">5:30 PM</span></div>
+      <div class="rem-item"><span>📸</span><span class="rem-lbl">Upload screenshot now</span><span class="rem-time">5:45 PM</span></div>
+      <div class="rem-item"><span>🌙</span><span class="rem-lbl">Night attendance</span><span class="rem-time">9:00 PM</span></div>
+      <button class="rem-btn" onclick="requestNotifs()">🔔 Enable browser reminders</button>
+    </div>
+    <div class="card">
+      <div class="card-title">Strict rules</div>
+      <div style="font-size:13px;color:var(--text2);line-height:2">
+        ❌ Never 2 consecutive red days<br>
+        ⏰ Sessions: 6:00 AM – 6:00 PM only<br>
+        📸 Screenshot upload mandatory before saving<br>
+        📝 At least one topic required per saved day<br>
+        🎯 Target: 150+ out of 180 points
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title">Export</div>
+      <button class="rem-btn" onclick="exportCSV()">⬇ Download full log (CSV)</button>
+      <button class="rem-btn" style="margin-top:8px" onclick="exportReportCSV()">⬇ Download attendance report (CSV)</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle"></h3>
+    <div id="modalImg" style="display:none"><img id="modalImgTag" src="" alt="proof"></div>
+    <div class="modal-body" id="modalBody"></div>
+    <button class="modal-close" onclick="closeModal()">Close</button>
+  </div>
+</div>
+
+<script>
+const START=new Date(2026,5,3);
+const DAYS=90;
+const KEY='naik90v3';
+const WH_S=6,WH_E=18;
+const MO=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const MO_FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||{days:{}}}catch{return{days:{}}}}
+function save(d){localStorage.setItem(KEY,JSON.stringify(d))}
+let state=load();
+let ibps=false,java=false,topics=[],uploaded=false,imgDataUrl='';
+
+function dk(d){const dt=new Date(d);return`${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`}
+function todayKey(){return dk(new Date())}
+function dayNum(){return Math.min(Math.max(Math.floor((new Date()-START)/864e5)+1,1),DAYS)}
+
+// Nav
+function setNav(){
+  const d=new Date();
+  document.getElementById('navDate').textContent=`${d.getDate()} ${MO[d.getMonth()]} ${d.getFullYear()}`;
+  document.getElementById('todayLabel').textContent=`${d.getDate()} ${MO[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+// Toggle
+function toggle(sub){
+  if(sub==='ibps'){ibps=!ibps;document.getElementById('togIBPS').classList.toggle('on',ibps)}
+  else{java=!java;document.getElementById('togJava').classList.toggle('on',java)}
+  checkBtn();
+}
+function checkBtn(){document.getElementById('saveBtn').disabled=!((ibps||java)&&topics.length>0&&uploaded)}
+
+// Topics
+function addTopic(){const inp=document.getElementById('topicInput');const v=inp.value.trim();if(!v)return;topics.push(v);inp.value='';renderTags();checkBtn()}
+function removeTopic(i){topics.splice(i,1);renderTags();checkBtn()}
+function renderTags(){document.getElementById('tagList').innerHTML=topics.map((t,i)=>`<span class="tag">${t}<span class="x" onclick="removeTopic(${i})">×</span></span>`).join('')}
+document.addEventListener('DOMContentLoaded',()=>document.getElementById('topicInput').addEventListener('keydown',e=>{if(e.key==='Enter')addTopic()}));
+
+// Upload
+function handleFile(inp){
+  const f=inp.files[0];if(!f)return;
+  if(!/\.(png|jpg|jpeg|gif|webp)$/i.test(f.name)){alert('Images only.');inp.value='';return}
+  const r=new FileReader();
+  r.onload=e=>{
+    imgDataUrl=e.target.result;uploaded=true;
+    document.getElementById('previewImg').src=imgDataUrl;
+    document.getElementById('previewBox').style.display='block';
+    document.getElementById('uploadOK').style.display='flex';
+    document.getElementById('uploadName').textContent=f.name;
+    checkBtn();
+    if((ibps||java)&&topics.length>0)saveDay(true);
+  };
+  r.readAsDataURL(f);
+}
+
+// Times
+function parseH(t){return parseInt(t.split(':')[0],10)}
+function validateTimes(){
+  if(ibps){const o=document.getElementById('ibpsOpen').value,c=document.getElementById('ibpsClose').value;if(parseH(o)<WH_S||parseH(c)>WH_E){alert('IBPS: 6 AM–6 PM only.');return false}if(o>=c){alert('Close must be after open.');return false}}
+  if(java){const o=document.getElementById('javaOpen').value,c=document.getElementById('javaClose').value;if(parseH(o)<WH_S||parseH(c)>WH_E){alert('Java: 6 AM–6 PM only.');return false}if(o>=c){alert('Close must be after open.');return false}}
+  return true;
+}
+
+// Save
+function saveDay(auto=false){
+  if(!validateTimes())return;
+  const k=todayKey();
+  const score=(ibps?1:0)+(java?1:0);
+  state.days[k]={score,ibps,java,ibpsOpen:document.getElementById('ibpsOpen').value,ibpsClose:document.getElementById('ibpsClose').value,javaOpen:document.getElementById('javaOpen').value,javaClose:document.getElementById('javaClose').value,topics:[...topics],imgDataUrl:imgDataUrl||'',savedAt:new Date().toISOString()};
+  save(state);
+  const msg=document.getElementById('savedMsg');msg.style.display='block';
+  if(auto){const b=document.getElementById('savedBanner');b.style.display='flex';setTimeout(()=>b.style.display='none',4000)}
+  setTimeout(()=>msg.style.display='none',2500);
+  renderAll();
+}
+
+// Stats
+function calcStreak(){let s=0;const t=new Date();for(let i=0;i<90;i++){const d=new Date(t);d.setDate(d.getDate()-i);const r=state.days[dk(d)];if(r&&r.score>0)s++;else if(i>0)break}return s}
+function checkConsecRed(){const t=new Date();const y1=new Date(t);y1.setDate(y1.getDate()-1);const y2=new Date(t);y2.setDate(y2.getDate()-2);const r1=state.days[dk(y1)],r2=state.days[dk(y2)];return r1&&r2&&r1.score===0&&r2.score===0}
+
+function renderStats(){
+  const days=state.days;const keys=Object.keys(days).sort();
+  let total=0,done=0;
+  keys.forEach(k=>{if(days[k]){total+=days[k].score;done++}});
+  document.getElementById('sTotal').textContent=total;
+  document.getElementById('sPossible').textContent=`of ${done*2} pts`;
+  document.getElementById('sDays').textContent=done;
+  const streak=calcStreak();document.getElementById('sStreak').textContent=streak;
+  const dayN=dayNum();const rem=DAYS-dayN;const need=Math.max(0,150-total);
+  let pace='On Track',ps='—';
+  if(need<=0){pace='Done!';ps='150+ reached'}else if(rem<=0){pace='Over';ps='Done'}else{const r=(need/rem).toFixed(1);pace=r<=2?'On Track':'Behind';ps=`${r}pt/day`}
+  document.getElementById('sPace').textContent=pace;document.getElementById('sPaceSub').textContent=ps;
+  const pct=Math.min((total/180)*100,100);document.getElementById('progFill').style.width=pct+'%';
+  if(streak>=3){document.getElementById('streakBanner').style.display='flex';document.getElementById('streakText').textContent=`${streak}-day streak! Keep it up.`}
+  else document.getElementById('streakBanner').style.display='none';
+  if(checkConsecRed())document.getElementById('alertBanner').style.display='flex';
+  else document.getElementById('alertBanner').style.display='none';
+}
+
+// Log
+function renderLog(){
+  const days=state.days;const filt=document.getElementById('logFilter').value;
+  let keys=Object.keys(days).sort().reverse();
+  if(filt==='ibps')keys=keys.filter(k=>days[k].ibps);
+  else if(filt==='java')keys=keys.filter(k=>days[k].java);
+  else if(filt==='both')keys=keys.filter(k=>days[k].ibps&&days[k].java);
+  else if(filt==='none')keys=keys.filter(k=>days[k].score===0);
+  if(!keys.length){document.getElementById('logBody').innerHTML='<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--text3);font-size:13px">No matching entries.</td></tr>';return}
+  document.getElementById('logBody').innerHTML=keys.map(k=>{
+    const r=days[k];const d=new Date(k);
+    const bc=r.score===2?'g':r.score===1?'y':'r';
+    const subj=(r.ibps?'<span class="pill ibps">IBPS</span>':'')+(r.java?'<span class="pill java">Java</span>':'')+(!r.ibps&&!r.java?'<span class="pill miss">None</span>':'');
+    const tp=r.topics&&r.topics.length?r.topics.slice(0,2).join(', ')+(r.topics.length>2?'…':''):'—';
+    const th=r.imgDataUrl?`<img class="thumb-img" src="${r.imgDataUrl}" onclick="openModal('${k}')" alt="proof">`:'<span style="font-size:10px;color:var(--text3)">—</span>';
+    return`<tr><td style="font-weight:500;font-size:12px">${d.getDate()} ${MO[d.getMonth()]}</td><td><span class="badge ${bc}">${r.score}</span></td><td>${subj}</td><td style="font-size:11px;color:var(--text3)">${tp}</td><td>${th}</td><td><button class="view-btn" onclick="openModal('${k}')">View</button></td></tr>`;
+  }).join('');
+}
+
+// Calendar
+function renderCal(){
+  const container=document.getElementById('calContainer');container.innerHTML='';
+  const DH=['Mo','Tu','We','Th','Fr','Sa','Su'];const todayK=dk(new Date());
+  let months={};
+  for(let i=0;i<DAYS;i++){const d=new Date(START);d.setDate(d.getDate()+i);const mk=`${d.getFullYear()}-${d.getMonth()}`;if(!months[mk])months[mk]={y:d.getFullYear(),m:d.getMonth(),days:[]};months[mk].days.push(new Date(d))}
+  Object.values(months).forEach(m=>{
+    const bl=document.createElement('div');bl.className='cal-month';
+    const hd=document.createElement('div');hd.className='cal-month-hdr';hd.textContent=`${MO_FULL[m.m]} ${m.y}`;bl.appendChild(hd);
+    const gr=document.createElement('div');gr.className='cal-grid';
+    DH.forEach(n=>{const h=document.createElement('div');h.className='cal-dh';h.textContent=n;gr.appendChild(h)});
+    const first=new Date(m.y,m.m,1);let dow=first.getDay();dow=(dow+6)%7;
+    for(let e=0;e<dow;e++){const ed=document.createElement('div');ed.className='cal-day empty';gr.appendChild(ed)}
+    m.days.forEach(d=>{
+      const k=dk(d);const r=state.days[k];const future=d>new Date();const isToday=k===todayK;
+      const cell=document.createElement('div');cell.className='cal-day';
+      if(isToday)cell.classList.add('today');if(future)cell.classList.add('future');
+      if(r)cell.classList.add(r.score===2?'g':r.score===1?'y':'r');
+      const prev=new Date(d);prev.setDate(prev.getDate()-1);const pk=dk(prev);const pr=state.days[pk];
+      if(r&&r.score===0&&pr&&pr.score===0)cell.classList.add('warn');
+      const dn=document.createElement('div');dn.className='dn';dn.textContent=d.getDate();cell.appendChild(dn);
+      if(r){const dot=document.createElement('div');dot.className='dot';dot.textContent=r.score;cell.appendChild(dot)}
+      if(r&&!future)cell.onclick=()=>openModal(k);
+      gr.appendChild(cell);
+    });
+    bl.appendChild(gr);container.appendChild(bl);
+  });
+}
+
+// ===== REPORT =====
+function buildReportData(){
+  const days=state.days;
+  const allDays=[];
+  for(let i=0;i<DAYS;i++){
+    const d=new Date(START);d.setDate(d.getDate()+i);
+    const k=dk(d);const r=days[k]||null;
+    const past=d<=new Date();
+    allDays.push({d,k,r,past});
+  }
+  const pastDays=allDays.filter(x=>x.past);
+  const logged=pastDays.filter(x=>x.r);
+  let totalScore=0,ibpsDays=0,javaDays=0,bothDays=0,zeroDays=0;
+  logged.forEach(x=>{
+    totalScore+=x.r.score;
+    if(x.r.ibps)ibpsDays++;
+    if(x.r.java)javaDays++;
+    if(x.r.ibps&&x.r.java)bothDays++;
+    if(x.r.score===0)zeroDays++;
+  });
+  const loggedCount=logged.length;
+  const ibpsPct=loggedCount?Math.round((ibpsDays/loggedCount)*100):0;
+  const javaPct=loggedCount?Math.round((javaDays/loggedCount)*100):0;
+  const bothPct=loggedCount?Math.round((bothDays/loggedCount)*100):0;
+  const overallPct=loggedCount?Math.round((totalScore/(loggedCount*2))*100):0;
+
+  // Weeks
+  const weeks=[];
+  for(let w=0;w<13;w++){
+    const wDays=allDays.slice(w*7,w*7+7).filter(x=>x.past);
+    if(!wDays.length)break;
+    const wLogged=wDays.filter(x=>x.r);
+    let wScore=0,wIbps=0,wJava=0;
+    wLogged.forEach(x=>{wScore+=x.r.score;if(x.r.ibps)wIbps++;if(x.r.java)wJava++;});
+    const wMax=wDays.length*2;
+    const wPct=wMax?Math.round((wScore/wMax)*100):0;
+    const wStart=wDays[0].d;const wEnd=wDays[wDays.length-1].d;
+    weeks.push({w:w+1,start:wStart,end:wEnd,score:wScore,max:wMax,ibps:wIbps,java:wJava,pct:wPct,days:wDays,logged:wLogged});
+  }
+
+  // Months
+  const monthMap={};
+  logged.forEach(x=>{const mk=`${x.d.getFullYear()}-${x.d.getMonth()}`;if(!monthMap[mk])monthMap[mk]={m:x.d.getMonth(),y:x.d.getFullYear(),score:0,ibps:0,java:0,both:0,days:0,max:0};monthMap[mk].score+=x.r.score;if(x.r.ibps)monthMap[mk].ibps++;if(x.r.java)monthMap[mk].java++;if(x.r.ibps&&x.r.java)monthMap[mk].both++;monthMap[mk].days++;});
+  pastDays.forEach(x=>{const mk=`${x.d.getFullYear()}-${x.d.getMonth()}`;if(monthMap[mk])monthMap[mk].max+=2});
+  const months=Object.values(monthMap).sort((a,b)=>a.y-b.y||a.m-b.m);
+
+  // Best/worst weeks
+  const sortedW=[...weeks].filter(w=>w.logged.length>0).sort((a,b)=>b.pct-a.pct);
+  const bestWeek=sortedW[0]||null;const worstWeek=sortedW[sortedW.length-1]||null;
+
+  // Max streak
+  let maxStreak=0,cur=0;
+  allDays.filter(x=>x.past).forEach(x=>{if(x.r&&x.r.score>0)cur++;else cur=0;if(cur>maxStreak)maxStreak=cur});
+
+  // Missed days breakdown
+  const missedDays=pastDays.filter(x=>!x.r||x.r.score===0);
+  const ibpsMissed=loggedCount-ibpsDays;const javaMissed=loggedCount-javaDays;
+
+  return{allDays,pastDays,loggedCount,totalScore,ibpsDays,javaDays,bothDays,zeroDays,ibpsPct,javaPct,bothPct,overallPct,weeks,months,bestWeek,worstWeek,maxStreak,missedDays,ibpsMissed,javaMissed};
+}
+
+function renderReport(){
+  const D=buildReportData();
+
+  // Summary
+  const sg=document.getElementById('reportSummary');
+  sg.innerHTML=`
+    <div class="rstat hi"><div class="rl">Overall Score</div><div class="rv">${D.totalScore}<span style="font-size:13px;font-weight:400"> / ${D.loggedCount*2}</span></div><div class="rs">${D.overallPct}% efficiency</div></div>
+    <div class="rstat mid"><div class="rl">Days Logged</div><div class="rv">${D.loggedCount}</div><div class="rs">of ${D.pastDays.length} past days</div></div>
+    <div class="rstat"><div class="rl">Max Streak</div><div class="rv">${D.maxStreak}</div><div class="rs">consecutive days</div></div>
+    <div class="rstat hi"><div class="rl">IBPS Attend.</div><div class="rv">${D.ibpsPct}%</div><div class="rs">${D.ibpsDays} of ${D.loggedCount} days</div></div>
+    <div class="rstat hi"><div class="rl">Java Attend.</div><div class="rv">${D.javaPct}%</div><div class="rs">${D.javaDays} of ${D.loggedCount} days</div></div>
+    <div class="rstat ${D.zeroDays>5?'lo':'mid'}"><div class="rl">Zero Days</div><div class="rv">${D.zeroDays}</div><div class="rs">${D.ibpsMissed} IBPS missed</div></div>`;
+
+  // Attendance bars
+  const ab=document.getElementById('attBars');
+  const bars=[
+    {label:'Both subjects',pct:D.bothPct,cls:'both'},
+    {label:'IBPS SO',pct:D.ibpsPct,cls:'ibps'},
+    {label:'Java Backend',pct:D.javaPct,cls:'java'},
+    {label:'Overall score',pct:D.overallPct,cls:'ibps'},
+  ];
+  ab.innerHTML=bars.map(b=>`
+    <div class="att-bar-row">
+      <div class="att-bar-label">${b.label}</div>
+      <div class="att-bar-wrap"><div class="att-bar-fill ${b.cls}" style="width:${b.pct}%"></div></div>
+      <div class="att-pct">${b.pct}%</div>
+    </div>`).join('');
+
+  // Heatmap
+  const hm=document.getElementById('heatmap');
+  hm.innerHTML=D.allDays.map(x=>{
+    const cls=!x.past?'x':!x.r?'x':x.r.score===2?'g':x.r.score===1?'y':'r';
+    const tip=`${x.d.getDate()} ${MO[x.d.getMonth()]}${x.r?': '+x.r.score+'pt':''}`;
+    return`<div class="sday ${cls}" title="${tip}" onclick="${x.r&&x.past?`openModal('${x.k}')`:''}" style="cursor:${x.r&&x.past?'pointer':'default'}"></div>`;
+  }).join('');
+
+  // Weekly table
+  const wb=document.getElementById('weekBody');
+  wb.innerHTML=D.weeks.map(w=>{
+    const ds=`${w.start.getDate()} ${MO[w.start.getMonth()]} – ${w.end.getDate()} ${MO[w.end.getMonth()]}`;
+    const pcCls=w.pct>=80?'hi':w.pct>=50?'mid':'lo';
+    const pattern=w.days.map(x=>{const s=x.r?x.r.score:-1;const c=s===2?'g':s===1?'y':s===0?'r':'x';return`<div class="wsb ${c}" title="${x.d.getDate()} ${MO[x.d.getMonth()]}: ${s>=0?s+'pt':'future'}"></div>`;}).join('');
+    return`<tr>
+      <td style="font-weight:600;font-size:12px;color:var(--text)">W${w.w}</td>
+      <td style="font-size:11px">${ds}</td>
+      <td style="font-weight:600">${w.score}/${w.max}</td>
+      <td>${w.ibps}d</td>
+      <td>${w.java}d</td>
+      <td><span class="week-pct ${pcCls}">${w.pct}%</span></td>
+      <td><div class="week-score-bar">${pattern}</div></td>
+    </tr>`;
+  }).join('');
+
+  // Monthly breakdown
+  const mb=document.getElementById('monthBreakdown');
+  if(!D.months.length){mb.innerHTML='<div style="font-size:13px;color:var(--text3)">No data yet.</div>';return}
+  mb.innerHTML=D.months.map(m=>{
+    const pct=m.max?Math.round((m.score/m.max)*100):0;
+    const ibpsPct=m.days?Math.round((m.ibps/m.days)*100):0;
+    const javaPct=m.days?Math.round((m.java/m.days)*100):0;
+    const cls=pct>=80?'hi':pct>=50?'mid':'lo';
+    const bgColor=pct>=80?'var(--green-bg)':pct>=50?'var(--yellow-bg)':'var(--red-bg)';
+    const textColor=pct>=80?'var(--green)':pct>=50?'var(--yellow)':'var(--red)';
+    return`<div class="month-row">
+      <div class="month-row-hdr">
+        <div class="month-name">${MO_FULL[m.m]} ${m.y}</div>
+        <span class="month-score-badge" style="background:${bgColor};color:${textColor}">${m.score}/${m.max} pts — ${pct}%</span>
+      </div>
+      <div class="month-mini-bars">
+        <div class="mmb"><span style="width:60px">IBPS SO</span><div class="mmb-bar"><div class="mmb-fill" style="width:${ibpsPct}%;background:var(--blue-mid);height:100%"></div></div><span style="font-size:11px;font-weight:600;color:var(--text2)">${ibpsPct}%</span></div>
+        <div class="mmb"><span style="width:60px">Java</span><div class="mmb-bar"><div class="mmb-fill" style="width:${javaPct}%;background:var(--green-mid);height:100%"></div></div><span style="font-size:11px;font-weight:600;color:var(--text2)">${javaPct}%</span></div>
+        <div class="mmb"><span style="width:60px">Both</span><div class="mmb-bar"><div class="mmb-fill" style="width:${m.days?Math.round((m.both/m.days)*100):0}%;background:var(--purple-mid);height:100%"></div></div><span style="font-size:11px;font-weight:600;color:var(--text2)">${m.days?Math.round((m.both/m.days)*100):0}%</span></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Insights
+  const ins=document.getElementById('insights');
+  const need=Math.max(0,150-D.totalScore);const remD=Math.max(0,DAYS-dayNum());
+  const dailyNeeded=remD>0?(need/remD).toFixed(1):'0';
+  const onTrack=parseFloat(dailyNeeded)<=2;
+  ins.innerHTML=`
+    <div style="display:grid;gap:8px">
+      ${D.bestWeek?`<div style="font-size:13px;color:var(--text2);padding:8px;background:var(--green-bg);border-radius:var(--r8)">🏆 Best week: <strong style="color:var(--green)">Week ${D.bestWeek.w}</strong> — ${D.bestWeek.score}/${D.bestWeek.max} pts (${D.bestWeek.pct}%)</div>`:''}
+      ${D.worstWeek&&D.worstWeek!==D.bestWeek?`<div style="font-size:13px;color:var(--text2);padding:8px;background:var(--red-bg);border-radius:var(--r8)">⚠ Weakest week: <strong style="color:var(--red)">Week ${D.worstWeek.w}</strong> — ${D.worstWeek.score}/${D.worstWeek.max} pts (${D.worstWeek.pct}%)</div>`:''}
+      <div style="font-size:13px;color:var(--text2);padding:8px;background:var(--blue-bg);border-radius:var(--r8)">📈 ${need<=0?'<strong style="color:var(--blue)">Target of 150 points reached!</strong>':`To reach 150: need <strong style="color:var(--blue)">${dailyNeeded} pt/day</strong> for ${remD} remaining days — <strong>${onTrack?'ON TRACK':'BEHIND'}</strong>`}</div>
+      <div style="font-size:13px;color:var(--text2);padding:8px;background:var(--gray-bg);border-radius:var(--r8)">📊 Logged ${D.loggedCount}/${D.pastDays.length} past days | ${D.zeroDays} zero-score days | Max streak: ${D.maxStreak} days</div>
+    </div>`;
+}
+
+// Export report CSV
+function exportReportCSV(){
+  const D=buildReportData();
+  let csv='=== NAIK 90-Day Attendance Report ===\n';
+  csv+=`Generated:,${new Date().toLocaleString()}\n\n`;
+  csv+='--- Overall Summary ---\n';
+  csv+=`Total Score,${D.totalScore}\nDays Logged,${D.loggedCount}\nOverall Efficiency,${D.overallPct}%\nIBPS Attendance,${D.ibpsPct}%\nJava Attendance,${D.javaPct}%\nBoth Same Day,${D.bothPct}%\nZero Score Days,${D.zeroDays}\nMax Streak,${D.maxStreak} days\n\n`;
+  csv+='--- Weekly Breakdown ---\nWeek,Dates,Score,Max,Efficiency,IBPS Days,Java Days\n';
+  D.weeks.forEach(w=>{csv+=`Week ${w.w},${w.start.getDate()} ${MO[w.start.getMonth()]} - ${w.end.getDate()} ${MO[w.end.getMonth()]},${w.score},${w.max},${w.pct}%,${w.ibps},${w.java}\n`});
+  csv+='\n--- Monthly Breakdown ---\nMonth,Score,Max,Efficiency,IBPS Att,Java Att,Both Days\n';
+  D.months.forEach(m=>{const pct=m.max?Math.round((m.score/m.max)*100):0;const ip=m.days?Math.round((m.ibps/m.days)*100):0;const jp=m.days?Math.round((m.java/m.days)*100):0;csv+=`${MO_FULL[m.m]} ${m.y},${m.score},${m.max},${pct}%,${ip}%,${jp}%,${m.both}\n`});
+  csv+='\n--- Daily Log ---\nDate,Score,IBPS,Java,IBPS Time,Java Time,Topics\n';
+  D.allDays.filter(x=>x.r).forEach(x=>{
+    const r=x.r;const it=r.ibps?`${r.ibpsOpen}-${r.ibpsClose}`:'';const jt=r.java?`${r.javaOpen}-${r.javaClose}`:'';
+    csv+=`${x.d.getDate()} ${MO[x.d.getMonth()]} ${x.d.getFullYear()},${r.score},${r.ibps?'Yes':'No'},${r.java?'Yes':'No'},"${it}","${jt}","${(r.topics||[]).join('|')}"\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`naik_attendance_report_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+function exportCSV(){
+  const days=state.days;const keys=Object.keys(days).sort();
+  let csv='Date,Score,IBPS_Done,Java_Done,IBPS_Time,Java_Time,Topics,Saved_At\n';
+  keys.forEach(k=>{const r=days[k];const d=new Date(k);csv+=`${d.getDate()} ${MO[d.getMonth()]} ${d.getFullYear()},${r.score},${r.ibps?1:0},${r.java?1:0},"${r.ibps?r.ibpsOpen+'-'+r.ibpsClose:''}","${r.java?r.javaOpen+'-'+r.javaClose:''}","${(r.topics||[]).join('|')}",${r.savedAt||''}\n`});
+  const blob=new Blob([csv],{type:'text/csv'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`naik_log_${new Date().toISOString().slice(0,10)}.csv`;a.click();
+}
+
+// Modal
+function openModal(k){
+  const r=state.days[k];if(!r)return;
+  const d=new Date(k);
+  document.getElementById('modalTitle').textContent=`${d.getDate()} ${MO[d.getMonth()]} — Score ${r.score}/2`;
+  let body=`IBPS SO: ${r.ibps?`✓  ${r.ibpsOpen} – ${r.ibpsClose}`:'✗ Not done'}\nJava Backend: ${r.java?`✓  ${r.javaOpen} – ${r.javaClose}`:'✗ Not done'}\n`;
+  if(r.topics&&r.topics.length)body+=`Topics: ${r.topics.join(', ')}\n`;
+  body+=`Screenshot: ${r.imgDataUrl?'Uploaded':'Not uploaded'}\n`;
+  if(r.savedAt)body+=`Saved: ${new Date(r.savedAt).toLocaleString()}`;
+  document.getElementById('modalBody').textContent=body;
+  const mi=document.getElementById('modalImg');
+  if(r.imgDataUrl){document.getElementById('modalImgTag').src=r.imgDataUrl;mi.style.display='block'}else{mi.style.display='none'}
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(){document.getElementById('modal').classList.remove('open')}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal()});
+
+// Reminders
+function requestNotifs(){
+  if(!('Notification' in window)){alert('Browser notifications not supported.\nSet manual reminders at:\n6:00 AM, 12:00 PM, 5:30 PM, 9:00 PM');return}
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){new Notification('NAIK Tracker',{body:'Reminders enabled!'});scheduleAll();alert('Reminders enabled! Keep page open.')}
+    else alert('Permission denied. Enable in browser settings.');
+  });
+}
+function scheduleAll(){
+  [{h:6,m:0,msg:'Good morning! Start IBPS SO / Java session.'},{h:12,m:0,msg:'Midday check — studied today?'},{h:17,m:30,msg:'Window closes in 30 min! Log now.'},{h:17,m:45,msg:'Upload screenshot proof now!'},{h:21,m:0,msg:'Night reminder: log attendance.'}]
+  .forEach(t=>{const now=new Date(),fire=new Date();fire.setHours(t.h,t.m,0,0);if(fire<=now)fire.setDate(fire.getDate()+1);setTimeout(()=>{if(Notification.permission==='granted')new Notification('NAIK Tracker',{body:t.msg})},fire-now)});
+}
+
+// Tabs
+function switchTab(id,btn){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');btn.classList.add('active');
+  if(id==='report')renderReport();
+}
+
+// Init today
+function initToday(){
+  const r=state.days[todayKey()];
+  if(r){
+    ibps=r.ibps||false;java=r.java||false;topics=r.topics||[];imgDataUrl=r.imgDataUrl||'';uploaded=!!imgDataUrl;
+    document.getElementById('togIBPS').classList.toggle('on',ibps);
+    document.getElementById('togJava').classList.toggle('on',java);
+    if(r.ibpsOpen)document.getElementById('ibpsOpen').value=r.ibpsOpen;
+    if(r.ibpsClose)document.getElementById('ibpsClose').value=r.ibpsClose;
+    if(r.javaOpen)document.getElementById('javaOpen').value=r.javaOpen;
+    if(r.javaClose)document.getElementById('javaClose').value=r.javaClose;
+    renderTags();
+    if(imgDataUrl){document.getElementById('previewImg').src=imgDataUrl;document.getElementById('previewBox').style.display='block';document.getElementById('uploadOK').style.display='flex';document.getElementById('uploadName').textContent='Previous screenshot'}
+    document.getElementById('alreadySaved').style.display='flex';
+    document.getElementById('saveBtn').textContent='Update Today';
+    document.getElementById('saveBtn').disabled=false;
+  }
+}
+
+function renderAll(){renderStats();renderLog();renderCal()}
+setNav();initToday();renderAll();
+</script>
+</body>
+</html>
