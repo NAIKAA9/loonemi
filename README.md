@@ -33,7 +33,7 @@ Example live link format:
 ---
 
 ## Developer Profile
-This repository is created and maintained by **[Eslavath Narasimha Naik](https://github.com/NAIKAA9)**.
-- **GitHub**: [NAIKAA9](https://github.com/NAIKAA9)
+This repository is created and maintained by **[Eslavath Narasimha Naik](https://github.com/eslavathnarasimhanaik)**.
+- **GitHub**: [eslavathnarasimhanaik](https://github.com/eslavathnarasimhanaik)
 - **LinkedIn**: [Narasimha Naik](https://www.linkedin.com/in/eslavathnarasimhanaik)
 
